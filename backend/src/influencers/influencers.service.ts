@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PipelineService } from './pipeline.service';
 import { SubmitInfluencerDto } from './dto/submit-influencer.dto';
 import { nominationMessage, verifyWalletSignature } from './wallet-signature';
+import { deriveComponents } from '../config/scoring';
 import { explorerUrl, isChainKey, isValidAddressForChain, realmFromChains } from '../config/explorer-registry';
 
 const SIMILARITY_BLOCK = 0.85;
@@ -39,6 +40,30 @@ export class InfluencersService {
         explorerUrl: explorerUrl(i.chainKey, i.address),
       })),
     }));
+  }
+
+  /**
+   * Imported candidates that are not ranked yet. Only the on-chain component is derived from their data,
+   * so no SIIR Score is shown and raw PnL stays out of the public response.
+   */
+  async candidates() {
+    const rows = await this.prisma.influencer.findMany({
+      where: { status: 'submitted', submittedBy: 'editorial-import' },
+      include: { identities: true, snapshots: { orderBy: { collectedAt: 'desc' } } },
+    });
+    return rows
+      .map((r) => {
+        const derived = deriveComponents(r.snapshots.map((s) => ({ signalKey: s.signalKey, value: s.value, source: s.source })));
+        return {
+          handle: r.handle,
+          name: r.name,
+          avatarUrl: r.avatarUrl,
+          realm: r.realm,
+          onchain: Math.round(derived.components.onchain * 1000) / 10,
+          wallets: r.identities.map((i) => ({ chainKey: i.chainKey, verified: i.verificationTier !== 'unverified' })),
+        };
+      })
+      .sort((a, b) => b.onchain - a.onchain);
   }
 
   async getIdentity(handle: string) {

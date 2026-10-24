@@ -1,269 +1,240 @@
 import type { CSSProperties } from 'react'
-import { ArrowRight, LinkSimple } from '@phosphor-icons/react'
-import { Art3D, Crystal, type Asset3D } from './components/Art'
-import { Reveal, State } from './components/Bits'
+import { ArrowRight } from '@phosphor-icons/react'
+import { Avatar, RealmChip, Reveal, State } from './components/Bits'
+import { HomeBoard } from './components/HomeBoard'
 import { RobinhoodIcon, SolanaIcon } from './components/Icons'
-import { LazyBg } from './components/LazyBg'
-import { RankingBoard } from './components/RankingBoard'
 import { api, type Entry } from './lib/api'
-import { TIER_LABEL } from './lib/format'
 import { useAsync } from './lib/hooks'
 import { Link } from './lib/router'
 
 const d = (ms: number) => ({ '--d': `${ms}ms` }) as CSSProperties
 
 const TIERS = [
-  ['singular', '#1'],
-  ['oracle', '#2-5'],
-  ['cortex', '#6-15'],
-  ['synapse', '#16-25'],
-  ['spark', '#26-33'],
-] as const
+  ['Singular', 'The top mind of this epoch.'],
+  ['Oracle', 'Shapes the narrative, not follows it.'],
+  ['Cortex', 'Consistent influence across chains.'],
+  ['Synapse', 'Rising minds with stronger signals.'],
+  ['Spark', 'New to the radar of the Seer.'],
+]
 
-function Hero({ minds, epoch }: { minds: number; epoch?: number }) {
+const SIGNALS = [
+  { img: 'sig-1', tag: 'METHOD', title: 'How the SIIR Score is built from five components', foot: 'Methodology', href: '/methodology' },
+  { img: 'sig-2', tag: 'REALMS', title: 'Two realms, one index: Solana and Robinhood Chain', foot: 'About SIIR', href: '/about' },
+  { img: 'sig-3', tag: 'ARCHIVE', title: 'Every edition of The SIIR 33, frozen by epoch', foot: 'Past epochs', href: '/epochs' },
+]
+
+function Hero({ entries, epoch }: { entries: Entry[]; epoch?: number }) {
   return (
-    <section id="hero" className="hero">
-      <p className="hero-side" aria-hidden="true">
-        <span>SEE</span>
-        <b>RANK</b>
-        <span>UNDERSTAND</span>
-        <span>THE NEXT</span>
-        <span>WAVE</span>
-      </p>
-      <div className="hero-copy">
+    <section id="hero" className="home-hero">
+      <div className="home-hero-copy">
         <span className="eyebrow rise" style={d(0)}>
-          THE SIIR {minds}
-          {epoch ? ` · EPOCH ${epoch}` : ''}
+          SUPER INTELLIGENCE INFLUENCER RANK
         </span>
-        <h1 className="hero-h1 rise" style={d(90)}>
+        <h1 className="home-h1 rise" style={d(90)}>
           The minds
           <br />
           the market
           <em>hasn&apos;t seen yet.</em>
         </h1>
-        <p className="hero-sub rise" style={d(180)}>
-          A curated index of {minds} influential minds shaping the future of Web3, AI, and onchain culture across Solana and
-          Robinhood Chain.
+        <p className="home-sub rise" style={d(180)}>
+          {entries.length || 33} influencers shaping the next wave of Web3 across Solana and Robinhood Chain.
         </p>
-        <div className="hero-actions rise" style={d(270)}>
-          <Link href="/#ranking" className="btn btn-dark">
-            Explore The SIIR {minds} <ArrowRight size={14} />
+        <div className="home-actions rise" style={d(270)}>
+          <Link href="/#ranking" className="btn btn-blue">
+            Explore The SIIR {entries.length || 33} <ArrowRight size={14} />
           </Link>
-          <Link href="/about" className="btn btn-outline">
-            About SIIR
+          <Link href="/methodology" className="btn btn-light">
+            View Methodology
           </Link>
         </div>
-        <dl className="hero-stats-row rise" style={d(360)}>
-          <div>
-            <dd>{minds}</dd>
-            <dt>Influential Minds</dt>
-          </div>
-          <div>
-            <dd>2</dd>
-            <dt>Onchain Realms</dt>
-          </div>
-          <div>
-            <dd>1</dd>
-            <dt>Signal Ahead</dt>
-          </div>
-        </dl>
+        <p className="home-proof rise" style={d(360)}>
+          <span className="stack">
+            {entries.slice(0, 4).map((e) => (
+              <Avatar key={e.influencer.handle} handle={e.influencer.handle} name={e.influencer.name} size={34} />
+            ))}
+          </span>
+          UPDATED EVERY EPOCH{epoch ? ` · EPOCH ${epoch}` : ''}
+        </p>
       </div>
     </section>
   )
 }
 
-function Strip() {
-  const items: [Asset3D, string][] = [
-    ['icon-people', 'Social Signals'],
-    ['icon-bars', 'Onchain Activity'],
-    ['icon-doc', 'Narrative Analysis'],
-    ['icon-eye', 'AI Insights'],
+function Stats({ minds }: { minds: number }) {
+  const items: [string, string, string][] = [
+    [String(minds), 'MINDS', 'Ranked every epoch'],
+    ['2', 'REALMS', 'Solana and Robinhood Chain'],
+    ['5', 'TIERS', 'From Spark to Singular'],
+    ['1', 'INDEX', 'To see the next wave early'],
   ]
   return (
-    <div className="strip">
-      <div className="strip-inner">
-        <div className="strip-group">
-          <span className="strip-label">COVERING MINDS ACROSS</span>
-          <span className="strip-chain">
-            <SolanaIcon size={24} /> Solana
-          </span>
-          <span className="strip-chain">
-            <RobinhoodIcon size={24} /> Robinhood Chain
-          </span>
+    <dl className="home-stats">
+      {items.map(([n, k, t]) => (
+        <div key={k}>
+          <dd>{n}</dd>
+          <dt>
+            <b>{k}</b>
+            <span>{t}</span>
+          </dt>
         </div>
-        <div className="strip-group">
-          <span className="strip-label">RANKED BY REAL DATA</span>
-          {items.map(([art, label]) => (
-            <span key={label} className="strip-item">
-              <Art3D name={art} className="strip-icon" />
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
+      ))}
+    </dl>
   )
 }
 
-function risers(entries: Entry[]): Entry[] {
-  const fresh = entries.filter((e) => e.isNew).slice(0, 1)
-  const up = entries
-    .filter((e) => !e.isNew && (e.rankChange ?? 0) > 0)
-    .sort((a, b) => (b.rankChange ?? 0) - (a.rankChange ?? 0))
-    .slice(0, 3 - fresh.length)
-  return [...up, ...fresh]
-}
-
-function Rising({ entries }: { entries: Entry[] }) {
-  const list = risers(entries)
-  if (!list.length) return null
+function Radar() {
+  const { data } = useAsync(() => api.candidates(), [])
+  if (!data || data.length === 0) return null
   return (
-    <LazyBg className="rising" id="rising">
-      <div className="wrap">
-        <Reveal className="rising-head">
-          <div>
-            <span className="eyebrow eyebrow--light">THIS EPOCH</span>
-            <h2 className="section-title">Rising Minds</h2>
-            <p className="section-dek">The biggest movers in this epoch. New narratives. New opportunities.</p>
-          </div>
-          <Link href="/#ranking" className="text-link text-link--light">
-            View all risers <ArrowRight size={14} />
-          </Link>
-        </Reveal>
-        <div className="rising-grid">
-          {list.map((e, i) => (
-            <Reveal key={e.influencer.handle} delay={i * 90}>
-              <Link href={`/seen/${e.influencer.handle}`} className="rise-card">
-                <span className="rise-tag">{e.isNew ? 'New Entry' : `↑ +${e.rankChange}`}</span>
-                <strong>@{e.influencer.handle}</strong>
-                <b>{e.score.toFixed(1)}</b>
-                <Crystal variant={i} />
-              </Link>
-            </Reveal>
-          ))}
+    <section className="hs" id="radar">
+      <Reveal className="hs-head">
+        <div>
+          <span className="eyebrow">ON THE RADAR</span>
+          <h2 className="hs-title">Not ranked yet, already watched.</h2>
         </div>
-      </div>
-    </LazyBg>
+        <Link href="/candidates" className="text-link">
+          See all {data.length} candidates <ArrowRight size={14} />
+        </Link>
+      </Reveal>
+      <ul className="radar-row">
+        {data.slice(0, 12).map((c, i) => (
+          <li key={c.handle}>
+            <Reveal delay={(i % 6) * 40} className="radar-card">
+              <Avatar handle={c.handle} name={c.name} size={72} src={c.avatarUrl} />
+              <strong>{c.name}</strong>
+              <small>@{c.handle}</small>
+              <RealmChip realm={c.realm} />
+            </Reveal>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
 function Realms() {
   return (
-    <LazyBg className="section realms-stage" id="realms">
-      <div className="wrap">
-        <Reveal className="section-head section-head--left">
-          <span className="eyebrow">INFLUENCE ACROSS CHAINS</span>
-          <h2 className="section-title">
-            Two Realms.
-            <br />
-            One Larger Truth.
-          </h2>
-          <p className="section-dek">Different cultures. One connected future.</p>
-        </Reveal>
-        <Reveal className="realms-grid">
-          <div className="realm-card">
-            <SolanaIcon size={34} />
-            <h3>
-              Realm of
-              <br />
-              Velocity
-            </h3>
-            <small>Solana</small>
-            <p>Fast. Chaotic. Degen. Where new ideas are born.</p>
-            <Link href="/#ranking" className="text-link">
-              Explore Solana <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="realms-art">
-            <p>
-              BRIDGED MINDS <LinkSimple size={11} weight="bold" />
-              <br />
-              INFLUENCE BOTH REALMS
-            </p>
-          </div>
-          <div className="realm-card realm-card--right">
-            <RobinhoodIcon size={34} />
-            <h3>
-              Realm of
-              <br />
-              Ledger
-            </h3>
-            <small>Robinhood Chain</small>
-            <p>Traditional finance onchain. Where real world meets Web3.</p>
-            <Link href="/#ranking" className="text-link">
-              Explore Robinhood Chain <ArrowRight size={14} />
-            </Link>
-          </div>
-        </Reveal>
-      </div>
-    </LazyBg>
-  )
-}
-
-function Method() {
-  return (
-    <section className="section section--tint" id="method">
-      <div className="wrap method">
-        <Reveal className="method-copy">
-          <span className="eyebrow">A MULTI-LAYERED ANALYSIS</span>
-          <h2 className="section-title">
-            The Method
-            <br />
-            Behind the Signal.
-          </h2>
-          <span className="title-rule" aria-hidden="true" />
-          <p className="section-dek">
-            SIIR Score combines social influence, engagement quality, narrative lead, onchain footprint, and consistency across both
-            realms.
-          </p>
-          <Link href="/methodology" className="text-link">
-            View methodology <ArrowRight size={14} />
-          </Link>
-        </Reveal>
-        <Reveal className="method-visual" delay={80}>
-          <img
-            src="/bg/method.webp"
-            width={1405}
-            height={1119}
-            loading="lazy"
-            decoding="async"
-            alt="SIIR Score diagram: Social Signals, Engagement Quality, Narrative Lead, Onchain Footprint and Consistency arranged around the SIIR core."
-          />
-        </Reveal>
-        <Reveal className="tiers-card" delay={160}>
-          <h3>The Five Tiers</h3>
-          <ul>
-            {TIERS.map(([k, r]) => (
-              <li key={k}>
-                <i style={{ background: `var(--tier-${k})` }} />
-                <span>{TIER_LABEL[k]}</span>
-                <b>{r}</b>
-              </li>
-            ))}
-          </ul>
-        </Reveal>
-      </div>
+    <section className="hs hs-realms" id="realms">
+      <Reveal className="hs-copy">
+        <span className="eyebrow">TWO REALMS, ONE OBSERVATION</span>
+        <h2 className="hs-title">
+          Across chains.
+          <br />
+          Beyond noise.
+        </h2>
+        <p>SIIR tracks the thinkers, builders, and degen-driven voices who shape narratives before they become obvious.</p>
+        <Link href="/about" className="text-link">
+          Learn about the realms <ArrowRight size={14} />
+        </Link>
+      </Reveal>
+      <Reveal className="realm-tiles" delay={80}>
+        <Link href="/#ranking" className="realm-tile">
+          <img src="/home/city-violet.webp" width={708} height={494} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <span className="realm-tile-copy">
+            <SolanaIcon size={26} />
+            <b>SOLANA</b>
+            <small>Realm of Velocity</small>
+            <p>Fast, open, and degen-driven innovation.</p>
+          </span>
+        </Link>
+        <Link href="/#ranking" className="realm-tile">
+          <img src="/home/city-green.webp" width={712} height={494} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <span className="realm-tile-copy">
+            <RobinhoodIcon size={26} />
+            <b>ROBINHOOD CHAIN</b>
+            <small>Realm of Ledger</small>
+            <p>Traditional finance meets on-chain intelligence.</p>
+          </span>
+        </Link>
+      </Reveal>
     </section>
   )
 }
 
-function Banner({ minds }: { minds: number }) {
+function Tiers() {
   return (
-    <LazyBg className="banner-wrap">
-      <Reveal className="banner">
-        <div className="banner-copy">
-          <h2>
-            SEE BEFORE
-            <br />
-            THE SIGNAL.
-          </h2>
-          <p>Join a growing community that follows the minds shaping what&apos;s next.</p>
+    <section className="hs" id="tiers">
+      <Reveal className="hs-head">
+        <div>
+          <span className="eyebrow">FIVE TIERS, ONE INDEX</span>
+          <h2 className="hs-title">From spark to singular.</h2>
         </div>
-        <Link href="/#ranking" className="btn btn-dark">
-          Explore The SIIR {minds} <ArrowRight size={14} />
+        <Link href="/about" className="text-link">
+          Learn about the tiers <ArrowRight size={14} />
         </Link>
       </Reveal>
-    </LazyBg>
+      <ol className="tier-row">
+        {TIERS.map(([name, text], i) => (
+          <li key={name}>
+            <Reveal delay={i * 60} className="tier-tile">
+              <span className="tier-no">
+                <b>{String(i + 1).padStart(2, '0')}</b>
+                {name}
+              </span>
+              <img src={`/home/tier-${i + 1}.webp`} width={268} height={456} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+              <p>{text}</p>
+            </Reveal>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+function Signals() {
+  return (
+    <section className="hs" id="signals">
+      <Reveal className="hs-head">
+        <div>
+          <span className="eyebrow">FROM THE OBSERVATORY</span>
+          <h2 className="hs-title">Latest Signals</h2>
+        </div>
+        <Link href="/methodology" className="text-link">
+          Read the method <ArrowRight size={14} />
+        </Link>
+      </Reveal>
+      <ul className="sig-row">
+        {SIGNALS.map((s, i) => (
+          <li key={s.tag}>
+            <Reveal delay={i * 70} className="sig-wrap">
+              <Link href={s.href} className="sig-card">
+                <img src={`/home/${s.img}.webp`} width={448} height={360} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+                <span className="sig-body">
+                  <small>{s.tag}</small>
+                  <strong>{s.title}</strong>
+                  <span className="sig-foot">
+                    {s.foot} <ArrowRight size={14} />
+                  </span>
+                </span>
+              </Link>
+            </Reveal>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function Cta() {
+  return (
+    <section className="hs" id="nominate">
+      <Reveal className="cta2">
+        <img src="/home/cta.webp" width={1436} height={528} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+        <div className="cta2-copy">
+          <span className="eyebrow">JOIN THE OBSERVATION</span>
+          <h2 className="hs-title">Nominate a mind.</h2>
+          <p>Know someone who should be on The SIIR 33? Submit a nomination and help the Seer find the next wave.</p>
+          <div className="home-actions">
+            <Link href="/nominate" className="btn btn-blue">
+              Nominate Now <ArrowRight size={14} />
+            </Link>
+            <Link href="/about" className="btn btn-light">
+              Learn more about SIIR
+            </Link>
+          </div>
+        </div>
+      </Reveal>
+    </section>
   )
 }
 
@@ -272,23 +243,17 @@ export default function App() {
   const minds = data?.entries.length ?? 33
   return (
     <>
-      <Hero minds={minds} epoch={data?.epoch.number} />
-      <Strip />
-      <div className="wrap wrap--board">
+      <Hero entries={data?.entries ?? []} epoch={data?.epoch.number} />
+      <Stats minds={minds} />
+      <div className="hs">
         <State loading={loading} error={error} />
-        {data && (
-          <RankingBoard
-            board={data}
-            collapsible
-            title="Today's Ranking"
-            dek={`${minds} minds shaping the conversation across Solana and Robinhood Chain. Updated every epoch.`}
-          />
-        )}
+        {data && <HomeBoard board={data} />}
       </div>
-      {data && <Rising entries={data.entries} />}
+      <Radar />
       <Realms />
-      <Method />
-      <Banner minds={minds} />
+      <Tiers />
+      <Signals />
+      <Cta />
     </>
   )
 }

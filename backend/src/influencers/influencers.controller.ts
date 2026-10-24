@@ -16,6 +16,11 @@ export class InfluencersController {
     return this.influencersService.findAll(walletAddress);
   }
 
+  @Get('candidates')
+  candidates() {
+    return this.influencersService.candidates();
+  }
+
   @Get('public-rankings')
   getPublicRankings() {
     return this.epochsService.findOne('current');

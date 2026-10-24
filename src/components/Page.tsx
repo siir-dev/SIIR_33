@@ -3,7 +3,7 @@ import { Link } from '../lib/router'
 
 /** Shared building blocks for the inner pages: observatory hero, section headings, count-up numbers. */
 
-type HeroBg = 'hero' | 'banner' | 'rising' | 'realms' | 'none'
+type HeroBg = 'hero' | 'home' | 'banner' | 'rising' | 'realms' | 'none'
 
 export function PageHero({
   tone = 'sky',

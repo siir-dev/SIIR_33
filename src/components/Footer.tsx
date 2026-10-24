@@ -68,6 +68,7 @@ export function Footer() {
           <Link href="/methodology">Methodology</Link>
           <Link href="/about">About</Link>
           <Link href="/nominate">Nominate</Link>
+          <Link href="/candidates">Candidates</Link>
         </nav>
         <div className="footer-follow">
           <h2>New rankings every epoch</h2>

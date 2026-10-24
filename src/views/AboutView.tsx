@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { ArrowRight } from '@phosphor-icons/react'
-import { Art3D } from '../components/Art'
 import { Reveal } from '../components/Bits'
 import { RobinhoodIcon, SolanaIcon } from '../components/Icons'
 import { FxHeading, PageHero } from '../components/Page'
@@ -20,7 +19,7 @@ export function AboutView() {
   return (
     <>
       <PageHero
-        bg="hero"
+        bg="home"
         crumbs={[{ label: 'About' }]}
         eyebrow="THE SEER"
         title={
@@ -30,7 +29,6 @@ export function AboutView() {
           </>
         }
         dek="SIIR reads the minds that move Solana and Robinhood Chain, and records them before the timeline notices."
-        art={<Art3D name="planets" className="phero-3d" eager />}
         ticker={['Super Intelligence Influencer Rank', 'Read as "seer"', 'Ranked every epoch']}
       />
 

@@ -71,6 +71,15 @@ export interface NominationBody {
   signature: string
 }
 
+export interface Candidate {
+  handle: string
+  name: string
+  avatarUrl: string | null
+  realm: Realm
+  onchain: number
+  wallets: { chainKey: string; verified: boolean }[]
+}
+
 export interface MyNomination {
   handle: string
   name: string
@@ -108,5 +117,6 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }),
+  candidates: () => request<Candidate[]>('/influencers/candidates'),
   myNominations: (wallet: string) => request<MyNomination[]>(`/influencers?walletAddress=${encodeURIComponent(wallet)}`),
 }

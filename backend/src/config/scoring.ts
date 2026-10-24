@@ -40,6 +40,9 @@ export const SIGNAL = {
   txCountTotal: 'onchain_tx_total', // fallback for chains without an indexer
   walletAgeDays: 'wallet_age_days',
   consecutiveEpochs: 'consecutive_epochs',
+  trades30d: 'onchain_trades_30d', // buys + sells in the last 30 days
+  winRate30d: 'onchain_win_rate_30d', // 0..1
+  pnl30dUsd: 'onchain_pnl_30d_usd', // realised profit, USD
 } as const;
 
 export interface DerivedComponents {
@@ -50,17 +53,40 @@ export interface DerivedComponents {
   insufficientEvidence: boolean;
 }
 
-const CHAIN_OF_SOURCE: Record<string, 'solana' | 'robinhood'> = { 'solana-rpc': 'solana', 'robinhood-rpc': 'robinhood' };
+const CHAIN_OF_SOURCE: Record<string, 'solana' | 'robinhood'> = {
+  'solana-rpc': 'solana',
+  'robinhood-rpc': 'robinhood',
+  'gmgn-solana': 'solana',
+  'gmgn-robinhood': 'robinhood',
+};
 
-/** On-chain norm for one wallet group: 60% log of transactions, 40% wallet age. */
-export function onchainNorm(tx?: number, ageDays?: number): number {
+/** On-chain activity for one wallet group: 60% log of transactions, 40% wallet age. */
+function activityNorm(tx?: number, ageDays?: number): number {
   return clamp01(0.6 * (tx ? clamp01(Math.log10(tx + 1) / 3.5) : 0) + 0.4 * (ageDays ? clamp01(ageDays / 730) : 0));
+}
+
+/**
+ * Trading results over 30 days: half win rate (30% scores 0, 70% scores 1), half realised profit (log, $1M = 1.0).
+ * Scaled down linearly when there are fewer trades than the minimum sample, so a perfect record on a handful of trades cannot win.
+ */
+export function resultsNorm(trades: number, winRate: number, pnlUsd: number): number {
+  const win = clamp01((winRate - 0.3) / 0.4);
+  const profit = clamp01(Math.log10(Math.max(0, pnlUsd) + 1) / 6);
+  const sample = clamp01(trades / THRESHOLDS.tradeSampleMin);
+  return sample * (0.5 * win + 0.5 * profit);
+}
+
+/** On-chain norm for one wallet group. With trading results it is half activity, half results; without, activity alone. */
+export function onchainNorm(tx?: number, ageDays?: number, results?: { trades: number; winRate: number; pnlUsd: number }): number {
+  const activity = activityNorm(tx, ageDays);
+  if (!results) return activity;
+  return clamp01(0.5 * activity + 0.5 * resultsNorm(results.trades, results.winRate, results.pnlUsd));
 }
 
 /** Newest on-chain snapshot per signal, grouped by the chain it came from. */
 function groupOnchain(snapshots: SnapshotLike[]) {
-  const groups = new Map<string, { tx90?: number; txTotal?: number; age?: number }>();
-  const keys: string[] = [SIGNAL.txCount90d, SIGNAL.txCountTotal, SIGNAL.walletAgeDays];
+  const groups = new Map<string, { tx90?: number; txTotal?: number; age?: number; trades?: number; win?: number; pnl?: number }>();
+  const keys: string[] = [SIGNAL.txCount90d, SIGNAL.txCountTotal, SIGNAL.walletAgeDays, SIGNAL.trades30d, SIGNAL.winRate30d, SIGNAL.pnl30dUsd];
   for (const s of snapshots) {
     if (!keys.includes(s.signalKey)) continue;
     const group = CHAIN_OF_SOURCE[s.source ?? ''] ?? 'other';
@@ -69,6 +95,9 @@ function groupOnchain(snapshots: SnapshotLike[]) {
     if (s.signalKey === SIGNAL.txCount90d && g.tx90 === undefined) g.tx90 = s.value;
     if (s.signalKey === SIGNAL.txCountTotal && g.txTotal === undefined) g.txTotal = s.value;
     if (s.signalKey === SIGNAL.walletAgeDays && g.age === undefined) g.age = s.value;
+    if (s.signalKey === SIGNAL.trades30d && g.trades === undefined) g.trades = s.value;
+    if (s.signalKey === SIGNAL.winRate30d && g.win === undefined) g.win = s.value;
+    if (s.signalKey === SIGNAL.pnl30dUsd && g.pnl === undefined) g.pnl = s.value;
     groups.set(group, g);
   }
   return groups;
@@ -106,7 +135,8 @@ export function deriveComponents(snapshots: SnapshotLike[], consecutiveEpochs = 
   const byChain: ChainScores = {};
   let onchain = 0;
   for (const [group, g] of groups) {
-    const score = onchainNorm(g.tx90 ?? g.txTotal, g.age);
+    const hasResults = g.trades !== undefined && g.win !== undefined && g.pnl !== undefined;
+    const score = onchainNorm(g.tx90 ?? g.txTotal ?? g.trades, g.age, hasResults ? { trades: g.trades!, winRate: g.win!, pnlUsd: g.pnl! } : undefined);
     if (group === 'solana' || group === 'robinhood') byChain[group] = score;
     onchain = Math.max(onchain, score); // a dormant second wallet must not drag down a strong first one
   }

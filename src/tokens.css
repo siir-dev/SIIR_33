@@ -3,6 +3,8 @@
 :root {
   color-scheme: light;
 
+  --btn-blue: #1F6FD6; /* primary blue button, white text passes AA */
+  --btn-blue-2: #1A5FBD;
   --siir-sky-500: #2D86F0; /* brand blue: highlights, rank, gauge */
   --siir-sky-300: #8CC0FA;
   --siir-sky-100: #E1EEFD;

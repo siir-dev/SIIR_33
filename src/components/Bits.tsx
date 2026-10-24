@@ -1,10 +1,14 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Realm, Tier } from '../lib/api'
 import { REALM_LABEL, TIER_LABEL, hue, initials } from '../lib/format'
 import { useReveal } from '../lib/hooks'
 
-/** Generated iris avatar: gradient disc, two orbit arcs, initials. */
-export function Avatar({ handle, name, size = 48 }: { handle: string; name: string; size?: number }) {
+/** Generated iris avatar: gradient disc, two orbit arcs, initials. Shows the photo when given and falls back to the iris if it fails to load. */
+export function Avatar({ handle, name, size = 48, src }: { handle: string; name: string; size?: number; src?: string | null }) {
+  const [failed, setFailed] = useState(false)
+  if (src && !failed) {
+    return <img className="avatar avatar--photo" src={src} width={size} height={size} alt={name} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+  }
   const h = hue(handle)
   const id = `av-${handle}-${size}`
   const tilt = (h * 7) % 360
