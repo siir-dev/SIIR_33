@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    {
+      "source": "/seen/:handle",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(twitterbot|facebookexternalhit|slackbot|discordbot|telegrambot|whatsapp|linkedinbot|embedly|pinterest|skypeuripreview).*"
+        }
+      ],
+      "destination": "/api/seen?handle=:handle"
+    },
+    {
+      "source": "/(|about|methodology|nominate|epochs|epochs/[0-9]+|seen/[A-Za-z0-9_]+)",
+      "destination": "/index.html"
+    }
+  ]
+}

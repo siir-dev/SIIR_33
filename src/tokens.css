@@ -1,0 +1,69 @@
+/* SIIR design tokens. The only file in which raw hex values may appear.
+   Palette: bright sky blue on white, deep navy for ink, buttons and the dark "Rising Minds" band. */
+:root {
+  color-scheme: light;
+
+  --siir-sky-500: #2D86F0; /* brand blue: highlights, rank, gauge */
+  --siir-sky-300: #8CC0FA;
+  --siir-sky-100: #E1EEFD;
+  --siir-sky-50: #F1F7FE;
+  --siir-azure-700: #1B5FB8; /* links, text on light sky (AA) */
+  --siir-navy: #0B1F3A; /* primary buttons, dark band */
+  --siir-navy-2: #12305A;
+  --siir-night: #0B1B2D; /* text on bright-blue surfaces */
+  --siir-ink: #0B1B2D;
+  --siir-slate: #5A6B80;
+  --siir-paper: #FFFFFF;
+  --siir-up: #16A34A;
+  --siir-down: #DC2626;
+  --siir-up-text: #15803D; /* green text on light surfaces; --siir-up fails WCAG AA at small sizes */
+  --siir-solana: #9945FF;
+  --siir-robinhood: #CCFF00;
+
+  --tier-singular: #5AA9F5;
+  --tier-oracle: #38BDF8;
+  --tier-cortex: #E056B4;
+  --tier-synapse: #F5B23C;
+  --tier-spark: #F28A3C;
+
+  /* semantic aliases */
+  --bg: var(--siir-sky-50);
+  --surface: var(--siir-paper);
+  --surface-alt: var(--siir-sky-100);
+  --text: var(--siir-ink);
+  --text-2: var(--siir-slate);
+  --line: rgb(11 31 58 / 0.1);
+  --hair: rgb(11 31 58 / 0.1);
+  --link: var(--siir-azure-700);
+  --btn-bg: var(--siir-navy);
+  --btn-text: #FFFFFF;
+  --on-sky: var(--siir-night);
+  --nav-bg: rgb(255 255 255 / 0.72);
+  --glass: rgb(255 255 255 / 0.7);
+  --glass-edge: rgb(255 255 255 / 0.95);
+  --glass-dark: rgb(255 255 255 / 0.08);
+  --glass-dark-edge: rgb(255 255 255 / 0.22);
+  --glow: rgb(45 134 240 / 0.3);
+  --glow-soft: rgb(45 134 240 / 0.1);
+  --sky-top: #BFDCFB;
+  --sky-bottom: #FFFFFF;
+  --sky-wash: #F3F7FF; /* page wash behind sections */
+  --sky-photo: #3294EC; /* matches the top edge of the mobile hero photo */
+  --sky-photo-top: #86C1F6;
+  --card-sky-a: #D5E7FF; /* #1 banner gradient */
+  --card-sky-b: #EEF5FF;
+  --card-sky-c: #DCEBFF;
+  --coin-mid: #B9C6D8; /* decorative coins */
+  --coin-dark: #6E7F97;
+  --up-on-dark: #7FE7B5; /* rank-up mint on the navy band */
+  --text-on-photo: #1F3B5E; /* body text over the hero photo on phones and tablets */
+  --r-card: 20px;
+
+  --shadow-card: 0 1px 0 #FFFFFF inset, 0 20px 50px -26px rgb(27 95 184 / 0.4);
+  --shadow-btn: 0 10px 24px -10px rgb(11 31 58 / 0.6);
+  --shadow-nav: 0 10px 40px -20px rgb(27 95 184 / 0.4);
+
+  --font-display: 'Playfair Display', 'DM Serif Display', Georgia, serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', Courier, monospace; /* Courier New has the same 0.6em advance, so the font swap does not reflow */
+}

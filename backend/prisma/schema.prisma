@@ -1,0 +1,187 @@
+// Supabase (Postgres). DATABASE_URL is the pooled connection (Supavisor, port 6543, ?pgbouncer=true),
+// DIRECT_URL is the direct connection (port 5432) that Prisma Migrate needs.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         String     @default("analyst") // analyst | editor | admin
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  Dossier      Dossier[]
+  Epoch        Epoch[]
+}
+
+/// A nominated mind. Mirrors the Agent pipeline: submitted -> queued -> ingesting -> analyzing -> draft -> in_review -> published.
+model Influencer {
+  id                 String               @id @default(uuid())
+  name               String
+  handle             String               @unique // X handle, lowercase, no @
+  slug               String               @unique
+  bio                String               @default("")
+  realm              String               @default("velocity") // velocity | ledger | bridged (derived from verified identities)
+  status             String               @default("submitted") // submitted | queued | ingesting | analyzing | draft | in_review | published | rejected_invalid | decohered
+  chains             String // comma separated: solana,robinhood
+  avatarUrl          String?
+  ownershipVerified  Boolean              @default(false)
+  submittedBy        String
+  submittedAt        DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  processAfter       DateTime?
+  scanIndex          Int                  @default(0)
+  selectionRationale String?
+  decoheredAt        DateTime?
+  decohereReason     String?
+  snapshots          SignalSnapshot[]
+  scores             Score[]
+  dossiers           Dossier[]
+  epochScores        EpochScore[]
+  signals            Signal[]
+  identities         InfluencerIdentity[]
+  links              InfluencerLink[]
+
+  @@index([status])
+  @@index([submittedBy])
+}
+
+model SignalSnapshot {
+  id            String     @id @default(uuid())
+  influencerId  String
+  influencer    Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  signalKey     String
+  value         Float
+  source        String
+  collectedAt   DateTime   @default(now())
+  methodVersion String
+  rawPayload    String // JSON string
+
+  @@index([influencerId, signalKey])
+}
+
+model Score {
+  id                 String     @id @default(uuid())
+  influencerId       String
+  influencer         Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  methodologyVersion String
+  hardSignalScores   String // JSON string
+  editorialScore     Float      @default(0.0)
+  confidence         Float      @default(1.0)
+  computedAt         DateTime   @default(now())
+
+  @@index([influencerId, computedAt])
+}
+
+/// "Why they're Seen": AI-drafted, human-verified editorial text.
+model Dossier {
+  id                 String     @id @default(uuid())
+  influencerId       String
+  influencer         Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  dossierNumber      Int        @unique
+  title              String
+  body               String
+  verdict            String
+  aiDrafted          Boolean    @default(true)
+  editorVerified     Boolean    @default(false)
+  editorId           String?
+  editor             User?      @relation(fields: [editorId], references: [id])
+  publishedAt        DateTime?
+  methodologyVersion String
+  supersedesId       String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([influencerId])
+}
+
+model InfluencerIdentity {
+  id                 String     @id @default(uuid())
+  influencerId       String
+  influencer         Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  chainKey           String // solana | robinhood
+  address            String
+  addressType        String     @default("wallet")
+  isPrimary          Boolean    @default(true)
+  verificationTier   String     @default("unverified") // unverified | verified | ownership_verified
+  verificationMethod String     @default("none") // signature | rpc_activity | none
+  verifiedAt         DateTime   @default(now())
+  lastCheckedAt      DateTime   @default(now())
+  createdAt          DateTime   @default(now())
+
+  @@unique([influencerId, chainKey, address])
+}
+
+model InfluencerLink {
+  id            String     @id @default(uuid())
+  influencerId  String
+  influencer    Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  kind          String // x | website | other
+  url           String
+  resolves      Boolean    @default(false)
+  lastCheckedAt DateTime   @default(now())
+  httpStatus    Int?
+
+  @@index([influencerId])
+}
+
+/// One edition of The SIIR 33. Created by an editor through the editorial gate.
+model Epoch {
+  number      Int          @id
+  startsAt    DateTime
+  endsAt      DateTime
+  status      String       @default("final") // live | final
+  publishedBy String?
+  editor      User?        @relation(fields: [publishedBy], references: [id])
+  publishedAt DateTime?
+  scores      EpochScore[]
+}
+
+model EpochScore {
+  id           String     @id @default(uuid())
+  influencerId String
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  epochNumber  Int
+  epoch        Epoch      @relation(fields: [epochNumber], references: [number], onDelete: Cascade)
+  score        Float
+  reachScore   Float
+  engagement   Float
+  narrative    Float
+  onchain      Float
+  consistency  Float
+  reachCount   Int
+  rank         Int
+  rankChange   Int? // null when NEW
+  tier         String // singular | oracle | cortex | synapse | spark
+
+  @@unique([influencerId, epochNumber])
+  @@index([epochNumber, rank])
+}
+
+/// Curated "latest signals" feed shown on profiles.
+model Signal {
+  id           String     @id @default(uuid())
+  influencerId String
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  url          String
+  postedAt     DateTime
+  summary      String
+  impact       String // high | medium | low
+
+  @@index([influencerId, postedAt])
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
