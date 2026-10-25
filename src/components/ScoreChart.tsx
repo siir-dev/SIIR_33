@@ -2,10 +2,14 @@ export function ScoreChart({ data }: { data: { epoch: number; score: number }[] 
   const W = 640
   const H = 220
   const pad = { l: 36, r: 16, t: 16, b: 28 }
-  if (data.length < 2) return <p className="state">Not enough epochs yet.</p>
+  if (data.length < 2) return <p className="state">The line starts with the second epoch this mind appears in.</p>
 
-  const min = Math.floor(Math.min(...data.map((d) => d.score)) - 3)
-  const max = Math.ceil(Math.max(...data.map((d) => d.score)) + 3)
+  const lo = Math.min(...data.map((d) => d.score))
+  const hi = Math.max(...data.map((d) => d.score))
+  const span = Math.max(8, hi - lo + 6) // a flat history still gets a readable scale
+  const mid = (hi + lo) / 2
+  const min = Math.floor(mid - span / 2)
+  const max = Math.ceil(mid + span / 2)
   const x = (i: number) => pad.l + (i / (data.length - 1)) * (W - pad.l - pad.r)
   const y = (v: number) => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b)
   const line = data.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(d.score).toFixed(1)}`).join(' ')
@@ -34,7 +38,7 @@ export function ScoreChart({ data }: { data: { epoch: number; score: number }[] 
         </g>
       ))}
       <path d={area} fill="url(#chart-fill)" />
-      <path d={line} fill="none" stroke="var(--siir-sky-500)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path className="chart-line" d={line} fill="none" stroke="var(--siir-sky-500)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {data.map((d, i) => (
         <g key={d.epoch}>
           <circle cx={x(i)} cy={y(d.score)} r={i === data.length - 1 ? 5 : 3.5} fill="var(--surface)" stroke="var(--siir-sky-500)" strokeWidth="2">

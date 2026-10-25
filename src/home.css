@@ -157,3 +157,7 @@
 .radar-card small { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-2); max-width: 100%; overflow-wrap: anywhere; }
 @media (max-width: 1000px) { .radar-row { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .radar-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+
+/* Spotlight shows the mind's own photo; the scrim keeps the name and score readable */
+.spot-img--photo { object-position: 50% 28%; }
+.spot:has(.spot-img--photo)::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(11 31 58 / 0.25) 0%, rgb(11 31 58 / 0) 34%, rgb(11 31 58 / 0.78) 100%); pointer-events: none; }

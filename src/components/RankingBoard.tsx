@@ -151,7 +151,7 @@ function HeroEntry({ entry, live }: { entry: Entry; live: boolean }) {
           <Link href={`/seen/${p.handle}`}>{p.name}</Link>
         </h3>
         <p className="hero-handle">
-          <Avatar handle={p.handle} name={p.name} size={26} />
+          <Avatar handle={p.handle} name={p.name} size={26} src={p.avatarUrl} />
           @{p.handle} <RealmChip realm={p.realm} />
         </p>
         <p className="why">{p.why}</p>
@@ -203,7 +203,7 @@ function Row({ entry, index }: { entry: Entry; index: number }) {
         {entry.rank}
       </span>
       <span className="c-profile">
-        <Avatar handle={p.handle} name={p.name} size={44} />
+        <Avatar handle={p.handle} name={p.name} size={44} src={p.avatarUrl} />
         <span className="profile-text">
           <strong>{p.name}</strong>
           <small>@{p.handle}</small>

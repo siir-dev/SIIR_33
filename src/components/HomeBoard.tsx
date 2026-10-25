@@ -20,7 +20,11 @@ function Spotlight({ entry, live }: { entry: Entry; live: boolean }) {
   const delta = scoreDelta(entry.spark)
   return (
     <article className="spot">
-      <img className="spot-img" src="/home/portrait.webp" width={708} height={496} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+      {p.avatarUrl ? (
+        <img className="spot-img spot-img--photo" src={p.avatarUrl} width={400} height={400} alt={p.name} referrerPolicy="no-referrer" decoding="async" />
+      ) : (
+        <img className="spot-img" src="/home/portrait.webp" width={708} height={496} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+      )}
       <div className="spot-top">
         <span className="spot-chip spot-chip--rank">#{entry.rank}</span>
         <span className="spot-chip spot-chip--tier">{TIER_LABEL[entry.tier].toUpperCase()}</span>
@@ -59,7 +63,7 @@ function MiniRow({ entry }: { entry: Entry }) {
   return (
     <Link href={`/seen/${p.handle}`} className="mini">
       <span className="mini-rank">{entry.rank}</span>
-      <Avatar handle={p.handle} name={p.name} size={38} />
+      <Avatar handle={p.handle} name={p.name} size={38} src={p.avatarUrl} />
       <span className="mini-who">
         <strong>{p.name}</strong>
         <small>@{p.handle}</small>

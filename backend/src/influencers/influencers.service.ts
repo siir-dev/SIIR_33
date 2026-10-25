@@ -48,7 +48,7 @@ export class InfluencersService {
    */
   async candidates() {
     const rows = await this.prisma.influencer.findMany({
-      where: { status: 'submitted', submittedBy: 'editorial-import' },
+      where: { status: { in: ['submitted', 'draft'] }, submittedBy: 'editorial-import' },
       include: { identities: true, snapshots: { orderBy: { collectedAt: 'desc' } } },
     });
     return rows

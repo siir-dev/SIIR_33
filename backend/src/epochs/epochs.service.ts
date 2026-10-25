@@ -38,7 +38,7 @@ export class EpochsService {
         startsAt: e.startsAt,
         endsAt: e.endsAt,
         status: e.status,
-        singular: top ? { handle: top.influencer.handle, name: top.influencer.name, score: top.score } : null,
+        singular: top ? { handle: top.influencer.handle, name: top.influencer.name, avatarUrl: top.influencer.avatarUrl, score: top.score } : null,
       };
     });
   }
@@ -83,6 +83,7 @@ export class EpochsService {
           bio: r.influencer.bio,
           why: r.influencer.dossiers[0]?.body ?? '',
           realm: r.influencer.realm,
+          avatarUrl: r.influencer.avatarUrl,
         },
       })),
     };

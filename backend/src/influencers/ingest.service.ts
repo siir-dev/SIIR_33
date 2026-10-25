@@ -50,10 +50,10 @@ export class IngestService {
       const now = Date.now() / 1000;
       const recent = sigs.filter((s) => s.blockTime && now - s.blockTime <= 90 * DAY && !s.err).length;
       const oldest = sigs.reduce<number>((min, s) => (s.blockTime && s.blockTime < min ? s.blockTime : min), now);
-      return [
-        { signalKey: SIGNAL.txCount90d, value: recent, source, raw: { sampled: sigs.length } },
-        { signalKey: SIGNAL.walletAgeDays, value: Math.round((now - oldest) / DAY), source, raw: { oldest } },
-      ];
+      const readings: SignalReading[] = [{ signalKey: SIGNAL.txCount90d, value: recent, source, raw: { sampled: sigs.length } }];
+      // A full page means older history exists, so the oldest signature seen is not the wallet's age. Leave it unevidenced.
+      if (sigs.length < 1000) readings.push({ signalKey: SIGNAL.walletAgeDays, value: Math.round((now - oldest) / DAY), source, raw: { oldest } });
+      return readings;
     }
 
     // EVM without an indexer: the account nonce is the number of transactions the wallet has sent in total.

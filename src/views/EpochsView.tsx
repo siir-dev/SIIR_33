@@ -32,7 +32,8 @@ export function EpochsView() {
 
       <div className="pg">
         <State loading={loading} error={error} />
-        {data && (
+        {data && data.length === 0 && <p className="state">No epoch has been published yet.</p>}
+        {data && data.length > 0 && (
           <Reveal>
             <FxHeading index="TIMELINE">Newest first</FxHeading>
             <ol className="timeline">
@@ -51,7 +52,7 @@ export function EpochsView() {
                     </span>
                     {e.singular && (
                       <span className="tl-top">
-                        <Avatar handle={e.singular.handle} name={e.singular.name} size={44} />
+                        <Avatar handle={e.singular.handle} name={e.singular.name} size={44} src={e.singular.avatarUrl} />
                         <span>
                           <small>Singular</small>
                           <strong>{e.singular.name}</strong>

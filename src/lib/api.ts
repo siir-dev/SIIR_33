@@ -11,7 +11,7 @@ export interface Entry {
   score: number
   reach: number
   spark: number[]
-  influencer: { handle: string; name: string; bio: string; why: string; realm: Realm }
+  influencer: { handle: string; name: string; bio: string; why: string; realm: Realm; avatarUrl?: string | null }
 }
 
 export interface EpochMeta {
@@ -27,11 +27,11 @@ export interface EpochBoard {
 }
 
 export interface EpochSummary extends EpochMeta {
-  singular: { handle: string; name: string; score: number } | null
+  singular: { handle: string; name: string; avatarUrl?: string | null; score: number } | null
 }
 
 export interface Profile {
-  influencer: { handle: string; name: string; bio: string; why: string; realm: Realm; wallets: number }
+  influencer: { handle: string; name: string; bio: string; why: string; realm: Realm; wallets: number; avatarUrl?: string | null }
   previouslySeen: boolean
   current: {
     epoch: number
@@ -45,7 +45,7 @@ export interface Profile {
   stats: { peakRank: number | null; firstEpoch: number | null; epochsListed: number }
   history: { epoch: number; score: number; rank: number }[]
   signals: { id: string; url: string; postedAt: string; summary: string; impact: 'high' | 'medium' | 'low' }[]
-  also: { handle: string; name: string; realm: Realm; rank: number; tier: Tier; score: number }[]
+  also: { handle: string; name: string; realm: Realm; avatarUrl?: string | null; rank: number; tier: Tier; score: number }[]
 }
 
 export interface Methodology {

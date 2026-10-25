@@ -50,7 +50,7 @@ function Hero({ entries, epoch }: { entries: Entry[]; epoch?: number }) {
         <p className="home-proof rise" style={d(360)}>
           <span className="stack">
             {entries.slice(0, 4).map((e) => (
-              <Avatar key={e.influencer.handle} handle={e.influencer.handle} name={e.influencer.name} size={34} />
+              <Avatar key={e.influencer.handle} handle={e.influencer.handle} name={e.influencer.name} size={34} src={e.influencer.avatarUrl} />
             ))}
           </span>
           UPDATED EVERY EPOCH{epoch ? ` · EPOCH ${epoch}` : ''}
@@ -246,7 +246,11 @@ export default function App() {
       <Hero entries={data?.entries ?? []} epoch={data?.epoch.number} />
       <Stats minds={minds} />
       <div className="hs">
-        <State loading={loading} error={error} />
+        {error === 'Epoch not found' ? (
+          <p className="state">The first epoch has not been published yet. The minds below are already on the radar.</p>
+        ) : (
+          <State loading={loading} error={error} />
+        )}
         {data && <HomeBoard board={data} />}
       </div>
       <Radar />
